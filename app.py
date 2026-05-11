@@ -70,8 +70,15 @@ PLATFORM_PROMPTS = {
     },
 }
 
-# 管理员主密钥（用于进入管理面板，部署后可改为环境变量）
-ADMIN_MASTER_KEY = os.getenv("ADMIN_MASTER_KEY", "admin-2024-ai-writer")
+# 管理员主密钥 + 默认激活码（优先从 st.secrets 读取，其次环境变量，最后默认值）
+def _cfg(key, default):
+    try:
+        return st.secrets.get(key, os.getenv(key, default))
+    except Exception:
+        return os.getenv(key, default)
+
+ADMIN_MASTER_KEY = _cfg("ADMIN_MASTER_KEY", "admin-2024-ai-writer")
+DEFAULT_ADMIN_CODE = _cfg("DEFAULT_ADMIN_CODE", "")  # 空则自动生成随机码
 
 # ============================================================
 # 数据库
@@ -115,7 +122,10 @@ def init_db():
     # 如果没有激活码，生成一个默认管理员激活码
     count = conn.execute("SELECT COUNT(*) FROM activation_codes").fetchone()[0]
     if count == 0:
-        default_code = "ADMIN-" + secrets.token_hex(4).upper()
+        if DEFAULT_ADMIN_CODE:
+            default_code = DEFAULT_ADMIN_CODE
+        else:
+            default_code = "ADMIN-" + secrets.token_hex(4).upper()
         conn.execute(
             "INSERT INTO activation_codes (code, max_uses, plan_name, created_at) VALUES (?, ?, ?, ?)",
             (default_code, 9999, "管理员默认码", datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
