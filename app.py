@@ -507,10 +507,10 @@ def render_sidebar():
         api_key = st.text_input(
             "API Key",
             type="password",
-            value=os.getenv("DEEPSEEK_API_KEY", ""),
+            value=_cfg("DEEPSEEK_API_KEY", "sk-d51289631a964574944ea1c8b97875ac"),
             placeholder="sk-xxxxxxxx",
         )
-        base_url = st.text_input("API Base URL", value=os.getenv("DEEPSEEK_BASE_URL", default_url))
+        base_url = st.text_input("API Base URL", value=_cfg("DEEPSEEK_BASE_URL", default_url))
         model = st.text_input("模型名称", value=default_model)
 
         st.divider()
