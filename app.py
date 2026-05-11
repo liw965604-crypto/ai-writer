@@ -405,7 +405,7 @@ def render_login():
 def render_admin():
     st.title("🔧 管理员面板")
 
-    tab1, tab2 = st.tabs(["📋 激活码管理", "➕ 生成新码"])
+    tab1, tab2, tab3 = st.tabs(["📋 激活码管理", "➕ 生成新码", "⚙️ API 配置"])
 
     with tab1:
         codes = list_codes()
@@ -475,6 +475,30 @@ def render_admin():
 
             st.info("复制以上激活码，发送给付费用户即可")
 
+    with tab3:
+        st.subheader("⚙️ API 配置（当前值）")
+        st.caption("修改后仅本次会话生效。永久修改请在 Streamlit Cloud → Settings → Secrets 中配置")
+
+        current_key = _cfg("DEEPSEEK_API_KEY", "sk-d51289631a964574944ea1c8b97875ac")
+        current_url = _cfg("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
+        current_model = _cfg("DEEPSEEK_MODEL", "deepseek-chat")
+
+        new_key = st.text_input("API Key", type="password", value=current_key)
+        new_url = st.text_input("API Base URL", value=current_url)
+        new_model = st.text_input("模型名称", value=current_model)
+
+        if st.button("💾 应用配置（本次会话）", type="primary"):
+            st.session_state["api_key_override"] = new_key
+            st.session_state["api_url_override"] = new_url
+            st.session_state["api_model_override"] = new_model
+            st.success("已更新，返回主界面即可生效")
+
+        st.divider()
+        st.caption("永久配置：在 Streamlit Cloud Secrets 中添加以下内容：")
+        st.code(f"""DEEPSEEK_API_KEY = "{current_key[:10]}..."
+DEEPSEEK_BASE_URL = "{current_url}"
+DEEPSEEK_MODEL = "{current_model}\"""", language="toml")
+
 
 # ============================================================
 # 主界面（激活后的正常使用界面）
@@ -497,10 +521,10 @@ def render_sidebar():
             help="越高越有创意，越低越保守",
         )
 
-        # 从配置读取 API 信息（对用户隐藏）
-        api_key = _cfg("DEEPSEEK_API_KEY", "sk-d51289631a964574944ea1c8b97875ac")
-        base_url = _cfg("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
-        model = _cfg("DEEPSEEK_MODEL", "deepseek-chat")
+        # 从配置读取 API 信息（对用户隐藏），允许管理员面板覆盖
+        api_key = st.session_state.get("api_key_override") or _cfg("DEEPSEEK_API_KEY", "sk-d51289631a964574944ea1c8b97875ac")
+        base_url = st.session_state.get("api_url_override") or _cfg("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
+        model = st.session_state.get("api_model_override") or _cfg("DEEPSEEK_MODEL", "deepseek-chat")
 
         st.divider()
 
