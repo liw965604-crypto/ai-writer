@@ -490,36 +490,17 @@ def render_sidebar():
             st.warning("次数即将用完，请联系续费")
 
         st.divider()
-        st.title("⚙️ API 配置")
-
-        preset = st.selectbox(
-            "API 预设",
-            ["DeepSeek（推荐，国内可用）", "OpenAI", "自定义"],
-        )
-
-        defaults = {
-            "DeepSeek（推荐，国内可用）": ("https://api.deepseek.com", "deepseek-chat"),
-            "OpenAI": ("https://api.openai.com/v1", "gpt-4o"),
-            "自定义": ("https://api.deepseek.com", "deepseek-chat"),
-        }
-        default_url, default_model = defaults[preset]
-
-        api_key = st.text_input(
-            "API Key",
-            type="password",
-            value=_cfg("DEEPSEEK_API_KEY", "sk-d51289631a964574944ea1c8b97875ac"),
-            placeholder="sk-xxxxxxxx",
-        )
-        base_url = st.text_input("API Base URL", value=_cfg("DEEPSEEK_BASE_URL", default_url))
-        model = st.text_input("模型名称", value=default_model)
-
-        st.divider()
         st.title("🎛️ 生成参数")
 
         temperature = st.slider(
             "创意度", 0.0, 2.0, 0.8, 0.1,
             help="越高越有创意，越低越保守",
         )
+
+        # 从配置读取 API 信息（对用户隐藏）
+        api_key = _cfg("DEEPSEEK_API_KEY", "sk-d51289631a964574944ea1c8b97875ac")
+        base_url = _cfg("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
+        model = _cfg("DEEPSEEK_MODEL", "deepseek-chat")
 
         st.divider()
 
